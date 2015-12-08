@@ -1,20 +1,16 @@
 'use strict';
 
+let _ = require('lodash');
 let request = require('request');
 
-let sumVariants = function(partialPrice, variant) {
-  return partialPrice + Number(variant.price);
-};
-
-let sumProducts = function(partialPrice, product) {
-  return partialPrice + product.variants.reduce(sumVariants, 0);
-};
-
-let sumLampsAndWallets = function(products) {
-  return products.filter((p) => {
-    return p.product_type === 'Wallet' ||
-           p.product_type === 'Lamp';
-  }).reduce(sumProducts, 0);
+let sumLampsAndWallets= (products) => {
+  let options = ['Wallet', 'Lamp'];
+  return _(products)
+        .filter(p => _.indexOf(options, p.product_type) > -1)
+        .pluck('variants')
+        .flatten()
+        .pluck('price')
+        .sum();
 };
 
 request('http://shopicruit.myshopify.com/products.json',
@@ -24,3 +20,5 @@ request('http://shopicruit.myshopify.com/products.json',
           let costLampAndWallets = sumLampsAndWallets(products);
           console.log(`$ ${costLampAndWallets}`);
         });
+
+
